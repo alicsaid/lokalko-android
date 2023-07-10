@@ -37,6 +37,7 @@ import com.example.lokalko.ui.components.IssueCard
 import com.example.lokalko.ui.components.IssueStatus
 import com.example.lokalko.ui.navigation.NavigationDestination
 import com.example.lokalko.ui.viewModels.AllRequestsScreenViewModel
+import com.example.lokalko.ui.viewModels.LoginScreenViewModel
 import com.example.lokalko.ui.viewModels.MyRequestsScreenViewModel
 
 object AllRequestsDestination : NavigationDestination {
@@ -49,7 +50,8 @@ object AllRequestsDestination : NavigationDestination {
 @Composable
 fun AllRequestsScreen(
     navController: NavController,
-    viewModel: AllRequestsScreenViewModel = hiltViewModel()
+    viewModel: AllRequestsScreenViewModel = hiltViewModel(),
+    viewModel2: LoginScreenViewModel = hiltViewModel()
 ) {
     Scaffold(
         topBar = {
@@ -67,7 +69,7 @@ fun AllRequestsScreen(
             )
         },
         bottomBar = {
-            BottomBar(navController = navController)
+            BottomBar(navController = navController, viewModel = viewModel2 )
         },
         content = {
             AllRequests(navController = navController, viewModel = viewModel)

@@ -1,5 +1,6 @@
 package com.example.lokalko.ui.components
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,12 +33,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.lokalko.ui.screens.HomeDestination
+import com.example.lokalko.ui.viewModels.LoginScreenViewModel
 
 @Composable
-fun BottomBar(navController: NavController) {
+fun BottomBar(navController: NavController, viewModel: LoginScreenViewModel) {
 
     val showDialog = remember { mutableStateOf(false) }
     val bluish = Color(4, 53, 85, 255)
+    val context = LocalContext.current
 
     BottomNavigation(backgroundColor = Color(67, 160, 71, 255)) {
         BottomNavigationItem(
@@ -111,7 +115,16 @@ fun BottomBar(navController: NavController) {
             modifier = Modifier.wrapContentWidth(align = Alignment.CenterHorizontally),
             confirmButton = {
                 Button(
-                    onClick = { navController.navigate("login") },
+                    onClick = {
+                        viewModel.logout() { loggedOut ->
+                            if (loggedOut) {
+                                navController.navigate("login")
+                            } else {
+                                //navController.navigate("profile")
+                                Toast.makeText(context, "Logout unsuccessful", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    },
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = bluish,

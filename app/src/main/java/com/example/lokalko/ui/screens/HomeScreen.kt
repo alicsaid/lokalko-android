@@ -20,6 +20,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,6 +37,7 @@ import com.example.lokalko.R
 import com.example.lokalko.ui.components.BottomBar
 import com.example.lokalko.ui.navigation.NavigationDestination
 import com.example.lokalko.ui.viewModels.HomeScreenViewModel
+import com.example.lokalko.ui.viewModels.LoginScreenViewModel
 
 object HomeDestination : NavigationDestination {
     override val route = "home"
@@ -45,8 +48,11 @@ object HomeDestination : NavigationDestination {
 @Composable
 fun HomeScreen(
     navController: NavController,
-    viewModel: HomeScreenViewModel = hiltViewModel()
+    viewModel: HomeScreenViewModel = hiltViewModel(),
+    viewModel2: LoginScreenViewModel = hiltViewModel()
 ) {
+    val totalRequests by viewModel.totalRequests.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -63,16 +69,16 @@ fun HomeScreen(
             )
         },
         bottomBar = {
-            BottomBar(navController = navController)
+            BottomBar(navController = navController, viewModel = viewModel2)
         },
         content = {
-            Home(navController = navController)
+            Home(totalRequests = totalRequests)
         }
     )
 }
 
 @Composable
-fun Home(navController: NavController) {
+fun Home(totalRequests: Int?) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -102,7 +108,7 @@ fun Home(navController: NavController) {
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = "You helped your community (x) times this year. Thank you",
+                    text = "You helped your community ${totalRequests ?: 0} times this year. Thank you!",
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
@@ -164,90 +170,5 @@ fun Home(navController: NavController) {
                 )
             }
         }
-
-        /*Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Stats for KONJIC",
-                style = TextStyle(
-                    fontSize = 16.sp,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold
-                )
-            )
-
-            Spacer(modifier = Modifier.height(36.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Card(
-                    modifier = Modifier
-                        .weight(1f)
-                        .wrapContentHeight(),
-                    elevation = 4.dp,
-                    shape = RoundedCornerShape(8.dp),
-                    backgroundColor = Color.White
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text(
-                            text = "Issues reported",
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                textAlign = TextAlign.Center,
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-
-                        Text(
-                            text = "30",
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                textAlign = TextAlign.Center,
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(26.dp))
-
-                Card(
-                    modifier = Modifier
-                        .weight(1f)
-                        .wrapContentHeight(),
-                    elevation = 4.dp,
-                    shape = RoundedCornerShape(8.dp),
-                    backgroundColor = Color.White
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text(
-                            text = "Issues resolved",
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                textAlign = TextAlign.Center,
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-
-                        Text(
-                            text = "25",
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                textAlign = TextAlign.Center,
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-                    }
-                }
-            }
-        }*/
     }
 }

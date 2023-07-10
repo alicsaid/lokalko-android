@@ -12,11 +12,14 @@ import com.example.lokalko.data.helpers.handleServerDownException
 import com.example.lokalko.data.helpers.handleServerUnavailableException
 import com.example.lokalko.data.model.Category
 import com.example.lokalko.data.model.City
+import com.example.lokalko.data.model.PostRequest
 import com.example.lokalko.data.model.Severity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.HttpException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -123,4 +126,26 @@ class MyRequestsScreenViewModel @Inject constructor(private val lokalkoRepositor
             }
         }
     }
+
+//    fun postRequest(requestData: RequestBody, images: List<MultipartBody.Part>) {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            try {
+//                val postRequest = PostRequest(requestData) // Kreirajte objekat PostRequest sa RequestBody
+//                val response = lokalkoRepository.postRequest(postRequest, images)
+//                // Obradite odgovor po potrebi
+//                println("Request sent")
+//            } catch (e: HttpException) {
+//                handleHttpException(errorMessage, e.code())
+//            } catch (e: UnknownHostException) {
+//                // Server nije pristupačan (nema konekcije sa serverom)
+//                handleServerUnavailableException(errorMessage)
+//            } catch (e: SocketTimeoutException) {
+//                // Vremensko ograničenje konekcije, moguće da je server pao
+//                handleServerDownException(errorMessage)
+//            } catch (e: ConnectException) {
+//                // Nije moguće uspostaviti konekciju sa serverom (nema interneta)
+//                handleNoInternetException(errorMessage)
+//            }
+//        }
+//    }
 }

@@ -1,5 +1,7 @@
 package com.example.lokalko.ui.screens
 
+import android.graphics.Color.rgb
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,14 +16,20 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,12 +42,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.lokalko.R
 import com.example.lokalko.ui.navigation.NavigationDestination
+import com.example.lokalko.ui.viewModels.LoginScreenViewModel
 
 object LoginDestination : NavigationDestination {
     override val route = "login"
@@ -50,20 +61,21 @@ object LoginDestination : NavigationDestination {
 @Composable
 fun LoginScreen(
     navController: NavController,
-    //viewModel: LoginScreenViewModel = hiltViewModel()
+    viewModel: LoginScreenViewModel = hiltViewModel()
 ) {
     Scaffold(
         content = {
-            Login(navController = navController)
+            Login(navController = navController, viewModel = viewModel)
         }
     )
 }
 
 @Composable
-fun Login(navController: NavController) {
+fun Login(navController: NavController, viewModel: LoginScreenViewModel) {
 
-    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
 
     Column(
@@ -89,9 +101,9 @@ fun Login(navController: NavController) {
         Spacer(modifier = Modifier.height(46.dp))
 
         OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { androidx.compose.material3.Text("Username") },
+            value = email,
+            onValueChange = { email = it },
+            label = { androidx.compose.material3.Text("Email") },
             keyboardOptions = KeyboardOptions.Default.copy(
                 imeAction = ImeAction.Next,
                 keyboardType = KeyboardType.Email
@@ -104,17 +116,56 @@ fun Login(navController: NavController) {
             value = password,
             onValueChange = { password = it },
             label = { androidx.compose.material3.Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions.Default.copy(
                 imeAction = ImeAction.Done,
                 keyboardType = KeyboardType.Password
-            )
+            ),
+            trailingIcon = {
+                val image = if (passwordVisible)
+                    Icons.Filled.Visibility
+                else Icons.Filled.VisibilityOff
+
+                val description = if (passwordVisible) "Hide password" else "Show password"
+
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        imageVector = image,
+                        description,
+                        tint = Color.Gray
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(36.dp))
 
         Button(
-            onClick = { navController.navigate("home") },
+            onClick = {
+                if (email.isEmpty() || password.isEmpty()) {
+                    Toast.makeText(context, "Please fill in all fields!", Toast.LENGTH_SHORT).show()
+                } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                    Toast.makeText(
+                        context,
+                        "Please enter a valid email address!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else if (password.length < 6) {
+                    Toast.makeText(
+                        context,
+                        "Password must be at least 6 characters long!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    viewModel.login(email, password) { loggedIn ->
+                        if (loggedIn) {
+                            navController.navigate("home")
+                        } else {
+                            Toast.makeText(context, "Login unsuccessful", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            },
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = (Color(139, 146, 190, 255)),

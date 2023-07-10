@@ -1,6 +1,11 @@
 package com.example.lokalko.ui.screens
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -24,9 +29,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,12 +47,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.lokalko.R
+import com.example.lokalko.data.model.PostRequest
 import com.example.lokalko.ui.components.BottomBar
 import com.example.lokalko.ui.components.ColorLegendCard
 import com.example.lokalko.ui.components.DropDownMenu
 import com.example.lokalko.ui.components.ErrorMessage
 import com.example.lokalko.ui.components.IssueCard
 import com.example.lokalko.ui.navigation.NavigationDestination
+import com.example.lokalko.ui.viewModels.LoginScreenViewModel
 import com.example.lokalko.ui.viewModels.MyRequestsScreenViewModel
 
 object MyRequestsDestination : NavigationDestination {
@@ -60,7 +67,8 @@ object MyRequestsDestination : NavigationDestination {
 @Composable
 fun MyRequestsScreen(
     navController: NavController,
-    viewModel: MyRequestsScreenViewModel = hiltViewModel()
+    viewModel: MyRequestsScreenViewModel = hiltViewModel(),
+    viewModel2: LoginScreenViewModel = hiltViewModel()
 ) {
 
     val showDialog = remember { mutableStateOf(false) }
@@ -77,9 +85,38 @@ fun MyRequestsScreen(
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
+    var city = 1
+    var category = 2
+    var severity = 3
 
     val maxChar35 = 35
     val maxChar70 = 70
+
+    val selectedImages = remember { mutableStateListOf<Uri>() }
+
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data: Intent? = result.data
+
+            if (data?.clipData != null) {
+                // Ako je odabrano više slika
+                val clipData = data.clipData
+                val count = clipData?.itemCount ?: 0
+                val maxImages = 3
+
+                for (i in 0 until minOf(count, maxImages)) {
+                    val uri = clipData?.getItemAt(i)?.uri
+                    uri?.let { selectedImages.add(it) }
+                }
+            } else if (data?.data != null) {
+                // Ako je odabrana samo jedna slika
+                val uri = data.data
+                uri?.let { selectedImages.add(it) }
+            }
+
+            // Ovdje možete obraditi listu odabranih slika
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -94,7 +131,7 @@ fun MyRequestsScreen(
             )
         },
         bottomBar = {
-            BottomBar(navController = navController)
+            BottomBar(navController = navController, viewModel = viewModel2)
         },
         content = {
             MyRequests(navController = navController, viewModel = viewModel)
@@ -186,7 +223,12 @@ fun MyRequestsScreen(
                     DropDownMenu(label = "Severity", options = severityOpt)
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = { /* TODO: camera */ },
+                        onClick = {
+                            val galleryIntent = Intent(Intent.ACTION_GET_CONTENT)
+                            galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                            galleryIntent.type = "image/*"
+                            galleryLauncher.launch(Intent.createChooser(galleryIntent, "Select Images"))
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(
@@ -194,7 +236,7 @@ fun MyRequestsScreen(
                             contentColor = Color.White
                         )
                     ) {
-                        Text(text = "Take a photo",
+                        Text(text = "Select images",
                             textAlign = TextAlign.Center,
                             style = TextStyle(
                                 fontSize = 14.sp,
@@ -208,6 +250,16 @@ fun MyRequestsScreen(
             confirmButton = {
                 Button(
                     onClick = {
+//                        val requestData = PostRequest(
+//                            title = title,
+//                            description = description,
+//                            address = address,
+//                            city = city,
+//                            category = category,
+//                            severity = severity,
+//                            images = selectedImages.toList()
+//                        )
+//                        viewModel.postRequest(requestData)
                         showDialog.value = false
                     },
                     shape = RoundedCornerShape(8.dp),

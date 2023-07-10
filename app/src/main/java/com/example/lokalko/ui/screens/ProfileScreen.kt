@@ -39,6 +39,7 @@ import androidx.navigation.NavController
 import com.example.lokalko.R
 import com.example.lokalko.ui.components.BottomBar
 import com.example.lokalko.ui.navigation.NavigationDestination
+import com.example.lokalko.ui.viewModels.LoginScreenViewModel
 import com.example.lokalko.ui.viewModels.ProfileScreenViewModel
 import com.example.lokalko.ui.viewModels.RequestDetailsScreenViewModel
 
@@ -51,7 +52,8 @@ object ProfileDestination : NavigationDestination {
 @Composable
 fun ProfileScreen(
     navController: NavController,
-    viewModel: ProfileScreenViewModel = hiltViewModel()
+    viewModel: ProfileScreenViewModel = hiltViewModel(),
+    viewModel2: LoginScreenViewModel = hiltViewModel()
 ) {
     Scaffold(
         topBar = {
@@ -69,7 +71,7 @@ fun ProfileScreen(
             )
         },
         bottomBar = {
-            BottomBar(navController = navController)
+            BottomBar(navController = navController, viewModel = viewModel2)
         },
         content = {
             Profile(viewModel = viewModel)
@@ -109,19 +111,31 @@ fun Profile(viewModel: ProfileScreenViewModel) {
         OutlinedTextField(
             value = firstName,
             onValueChange = { firstName = it },
-            label = { Text("First Name") }
+            label = { Text("First Name") },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next
+            )
         )
 
         OutlinedTextField(
             value = lastName,
             onValueChange = { lastName = it },
-            label = { Text("Last Name") }
+            label = { Text("Last Name") },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next
+            )
         )
 
         OutlinedTextField(
             value = city,
             onValueChange = { city = it },
-            label = { Text("City") }
+            label = { Text("City") },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next
+            )
         )
 
         OutlinedTextField(
@@ -130,7 +144,7 @@ fun Profile(viewModel: ProfileScreenViewModel) {
             label = { Text("Email") },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next
+                imeAction = ImeAction.Done
             )
         )
 
@@ -138,7 +152,12 @@ fun Profile(viewModel: ProfileScreenViewModel) {
 
         Button(
             onClick = {
-                /* TODO */
+                viewModel.updateUser(
+                    email = email,
+                    firstName = firstName,
+                    lastName = lastName,
+                    city = city
+                )
             },
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(

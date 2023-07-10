@@ -1,5 +1,7 @@
 package com.example.lokalko.ui.viewModels
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lokalko.data.repository.LokalkoRepository
@@ -14,16 +16,23 @@ class HomeScreenViewModel @Inject constructor(private val lokalkoRepository: Lok
     ViewModel() {
 
     init {
-        //getCategories()
+        getRequestsAnalytics()
     }
 
-    //val categories: MutableStateFlow<Categories?> = MutableStateFlow(null)
+    val totalRequests: MutableStateFlow<Int?> = MutableStateFlow(null)
+    val error: MutableStateFlow<String?> = MutableStateFlow("No error")
 
-    /*private fun getCategories() {
+    private fun getRequestsAnalytics() {
         viewModelScope.launch(Dispatchers.IO) {
-            val response = lokalkoRepository.getCategories()
-            categories.value = response
-            println("$response")
+            try {
+                val userId = 1
+                val response = lokalkoRepository.getAnalytics(userId = userId)
+                val totalRequestsValue = response.totalRequests
+                totalRequests.value = totalRequestsValue
+                println("$response")
+            } catch (e: Exception) {
+                error.value = e.message ?: "Error occurred"
+            }
         }
-    }*/
+    }
 }
