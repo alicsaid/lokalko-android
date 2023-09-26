@@ -1,68 +1,47 @@
 package com.example.lokalko.ui.screens
 
-import android.content.Intent
+import RDAppBar
 import android.os.Build
+import android.util.Patterns
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PageSize
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.lokalko.R
-import com.example.lokalko.data.model.PostRequest
-import com.example.lokalko.ui.components.DropDownMenu
 import com.example.lokalko.ui.components.ErrorMessage
 import com.example.lokalko.ui.navigation.NavigationDestination
+import com.example.lokalko.ui.theme.Poppins
 import com.example.lokalko.ui.viewModels.RequestDetailsScreenViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 object RequestDetailsDestination : NavigationDestination {
@@ -74,35 +53,24 @@ object RequestDetailsDestination : NavigationDestination {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RequestDetailsScreen(
-    navigateBack: () -> Unit,
+    navController: NavController,
+    requestId: Int?,
     viewModel: RequestDetailsScreenViewModel = hiltViewModel()
 ) {
+
+    if (requestId != null) {
+        viewModel.getRequestDetails(requestId)
+    }
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(id = RequestDetailsDestination.titleRes),
-                        style = TextStyle(
-                            fontSize = 20.sp,
-                            color = Color.White
-                        )
-                    )
-                },
-                backgroundColor = Color(67, 160, 71, 255),
-                navigationIcon = {
-                    IconButton(onClick = navigateBack) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.White
-                        )
-                    }
-                }
-            )
+            RDAppBar(title = "Report Details", navController = navController)
         },
         content = {
-            RequestDetails(viewModel = viewModel)
+            RequestDetails(
+                navController = navController,
+                viewModel = viewModel
+            )
         }
     )
 }
@@ -110,269 +78,328 @@ fun RequestDetailsScreen(
 @OptIn(ExperimentalFoundationApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun RequestDetails(viewModel: RequestDetailsScreenViewModel) {
+fun RequestDetails(navController: NavController, viewModel: RequestDetailsScreenViewModel) {
 
-    val request by viewModel.request.collectAsState()
+    val request = viewModel.request.value
     val errorMessage = viewModel.errorMessage.value
-    var isImageModalOpen by remember { mutableStateOf(false) }
-    val pagerState = rememberPagerState()
-    val scope = rememberCoroutineScope()
 
-    val animals = listOf(
-        R.drawable.lokalko,
-        R.drawable.quizzy,
-        R.drawable._01846,
-    )
+    val title = request?.title.orEmpty()
+    val description = request?.description.orEmpty()
+    val dateReported = request?.date.orEmpty()
+    val timeReported = request?.time.orEmpty()
+    val address = request?.address.orEmpty()
+    val city = request?.city.orEmpty()
+    val category = request?.category.orEmpty()
+    val severity = request?.severity.orEmpty()
+    val service = request?.service.orEmpty()
+    val status = request?.status.orEmpty()
 
-    Column(
+    Box(
         modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        contentAlignment = Alignment.Center
     ) {
+        Image(
+            painter = painterResource(id = R.drawable.background_white),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.FillBounds
+        )
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            item {
+                if (errorMessage != "No Error") {
+                    ErrorMessage(errorMessage)
+                } else {
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = { },
+                        label = {
+                            Text(
+                                text = "Title",
+                                fontFamily = Poppins,
+                                color = Color(65, 65, 65, 255)
+                            )
+                        },
+                        readOnly = true,
+                        modifier = Modifier
+                            .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                            .fillMaxWidth(),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            backgroundColor = Color(249, 244, 244, 255),
+                            focusedBorderColor = Color(65, 65, 65, 255),
+                            unfocusedBorderColor = Color(65, 65, 65, 255),
+                            focusedLabelColor = Color(65, 65, 65, 255),
+                            unfocusedLabelColor = Color(65, 65, 65, 255),
+                            cursorColor = Color(65, 65, 65, 255),
+                            textColor = Color(65, 65, 65, 255),
+                        ),
+                        textStyle = TextStyle.Default.copy(fontFamily = Poppins)
+                    )
 
-        if (errorMessage != "No Error") {
-            ErrorMessage(errorMessage)
-        } else {
-            Text(
-                modifier = Modifier.padding(top = 16.dp),
-                text = "Title:",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = request?.title.orEmpty(),
-                style = TextStyle(
-                    fontSize = 16.sp
-                )
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = "Description:",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = request?.description.orEmpty(),
-                style = TextStyle(
-                    fontSize = 16.sp
-                )
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = "Date reported:",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = request?.date.orEmpty(),
-                style = TextStyle(
-                    fontSize = 16.sp
-                )
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = "Time reported:",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = request?.time.orEmpty(),
-                style = TextStyle(
-                    fontSize = 16.sp
-                )
-            )
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { },
+                        label = {
+                            Text(
+                                text = "Description",
+                                fontFamily = Poppins,
+                                color = Color(65, 65, 65, 255)
+                            )
+                        },
+                        readOnly = true,
+                        maxLines = 3,
+                        modifier = Modifier
+                            .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                            .fillMaxWidth(),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            backgroundColor = Color(249, 244, 244, 255),
+                            focusedBorderColor = Color(65, 65, 65, 255),
+                            unfocusedBorderColor = Color(65, 65, 65, 255),
+                            focusedLabelColor = Color(65, 65, 65, 255),
+                            unfocusedLabelColor = Color(65, 65, 65, 255),
+                            cursorColor = Color(65, 65, 65, 255),
+                            textColor = Color(65, 65, 65, 255),
+                        ),
+                        textStyle = TextStyle.Default.copy(fontFamily = Poppins)
+                    )
 
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = "Address:",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = request?.address.orEmpty(),
-                style = TextStyle(
-                    fontSize = 16.sp
-                )
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = "City:",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = request?.city.orEmpty(),
-                style = TextStyle(
-                    fontSize = 16.sp
-                )
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = "Category:",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = request?.category.orEmpty(),
-                style = TextStyle(
-                    fontSize = 16.sp
-                )
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = "Severity:",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = request?.severity.orEmpty(),
-                style = TextStyle(
-                    fontSize = 16.sp
-                )
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = "Service:",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            )
-            if (request?.service?.isNotEmpty() == true) {
-                Text(
-                    modifier = Modifier.padding(top = 8.dp),
-                    text = request!!.service,
-                    style = TextStyle(
-                        fontSize = 16.sp
+                    OutlinedTextField(
+                        value = dateReported,
+                        onValueChange = { },
+                        label = {
+                            Text(
+                                text = "Date reported",
+                                fontFamily = Poppins,
+                                color = Color(65, 65, 65, 255)
+                            )
+                        },
+                        readOnly = true,
+                        modifier = Modifier
+                            .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                            .fillMaxWidth(),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            backgroundColor = Color(249, 244, 244, 255),
+                            focusedBorderColor = Color(65, 65, 65, 255),
+                            unfocusedBorderColor = Color(65, 65, 65, 255),
+                            focusedLabelColor = Color(65, 65, 65, 255),
+                            unfocusedLabelColor = Color(65, 65, 65, 255),
+                            cursorColor = Color(65, 65, 65, 255),
+                            textColor = Color(65, 65, 65, 255),
+                        ),
+                        textStyle = TextStyle.Default.copy(fontFamily = Poppins)
                     )
-                )
-            } else {
-                Text(
-                    modifier = Modifier.padding(top = 8.dp),
-                    text = "Not Assigned",
-                    style = TextStyle(
-                        fontSize = 16.sp
+
+                    OutlinedTextField(
+                        value = timeReported,
+                        onValueChange = { },
+                        label = {
+                            Text(
+                                text = "Time reported",
+                                fontFamily = Poppins,
+                                color = Color(65, 65, 65, 255)
+                            )
+                        },
+                        readOnly = true,
+                        modifier = Modifier
+                            .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                            .fillMaxWidth(),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            backgroundColor = Color(249, 244, 244, 255),
+                            focusedBorderColor = Color(65, 65, 65, 255),
+                            unfocusedBorderColor = Color(65, 65, 65, 255),
+                            focusedLabelColor = Color(65, 65, 65, 255),
+                            unfocusedLabelColor = Color(65, 65, 65, 255),
+                            cursorColor = Color(65, 65, 65, 255),
+                            textColor = Color(65, 65, 65, 255),
+                        ),
+                        textStyle = TextStyle.Default.copy(fontFamily = Poppins)
                     )
-                )
-            }
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = "Status:",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = request?.status.orEmpty(),
-                style = TextStyle(fontSize = 16.sp)
-            )
-            if (request?.image?.isNotEmpty() == true) {
-                Button(
-                    modifier = Modifier.padding(top = 8.dp),
-                    onClick = { isImageModalOpen = true },
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = (Color(
-                            139,
-                            146,
-                            190,
-                            255
-                        ))
-                    ),
-                    contentPadding = PaddingValues(12.dp)
-                ) {
-                    Text(
-                        text = "SEE IMAGES",
-                        textAlign = TextAlign.Center,
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+
+                    OutlinedTextField(
+                        value = address,
+                        onValueChange = { },
+                        label = {
+                            Text(
+                                text = "Address",
+                                fontFamily = Poppins,
+                                color = Color(65, 65, 65, 255)
+                            )
+                        },
+                        readOnly = true,
+                        modifier = Modifier
+                            .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                            .fillMaxWidth(),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            backgroundColor = Color(249, 244, 244, 255),
+                            focusedBorderColor = Color(65, 65, 65, 255),
+                            unfocusedBorderColor = Color(65, 65, 65, 255),
+                            focusedLabelColor = Color(65, 65, 65, 255),
+                            unfocusedLabelColor = Color(65, 65, 65, 255),
+                            cursorColor = Color(65, 65, 65, 255),
+                            textColor = Color(65, 65, 65, 255),
+                        ),
+                        textStyle = TextStyle.Default.copy(fontFamily = Poppins)
                     )
-                }
-            } else {
-                Button(
-                    modifier = Modifier.padding(top = 8.dp),
-                    onClick = { /*isImageModalOpen = true*/ },
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = (Color(
-                            139,
-                            146,
-                            190,
-                            255
-                        ))
-                    ),
-                    contentPadding = PaddingValues(12.dp)
-                ) {
-                    Text(
-                        text = "NO IMAGES",
-                        textAlign = TextAlign.Center,
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+
+                    OutlinedTextField(
+                        value = city,
+                        onValueChange = { },
+                        label = {
+                            Text(
+                                text = "City",
+                                fontFamily = Poppins,
+                                color = Color(65, 65, 65, 255)
+                            )
+                        },
+                        readOnly = true,
+                        modifier = Modifier
+                            .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                            .fillMaxWidth(),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            backgroundColor = Color(249, 244, 244, 255),
+                            focusedBorderColor = Color(65, 65, 65, 255),
+                            unfocusedBorderColor = Color(65, 65, 65, 255),
+                            focusedLabelColor = Color(65, 65, 65, 255),
+                            unfocusedLabelColor = Color(65, 65, 65, 255),
+                            cursorColor = Color(65, 65, 65, 255),
+                            textColor = Color(65, 65, 65, 255),
+                        ),
+                        textStyle = TextStyle.Default.copy(fontFamily = Poppins)
                     )
-                }
-            }
-        }
-        if (isImageModalOpen) {
-            Dialog(
-                onDismissRequest = { isImageModalOpen = false },
-                properties = DialogProperties(dismissOnClickOutside = true)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .height(300.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    HorizontalPager(
-                        pageCount = animals.size,
-                        state = pagerState,
-                        key = { animals[it] },
-                        pageSize = PageSize.Fill
-                    ) { index ->
-                        Image(
-                            painter = painterResource(id = animals[index]),
-                            contentDescription = null,
-                            contentScale = ContentScale.FillBounds,
-                            modifier = Modifier.fillMaxSize()
+
+                    OutlinedTextField(
+                        value = category,
+                        onValueChange = { },
+                        label = {
+                            Text(
+                                text = "Category",
+                                fontFamily = Poppins,
+                                color = Color(65, 65, 65, 255)
+                            )
+                        },
+                        readOnly = true,
+                        modifier = Modifier
+                            .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                            .fillMaxWidth(),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            backgroundColor = Color(249, 244, 244, 255),
+                            focusedBorderColor = Color(65, 65, 65, 255),
+                            unfocusedBorderColor = Color(65, 65, 65, 255),
+                            focusedLabelColor = Color(65, 65, 65, 255),
+                            unfocusedLabelColor = Color(65, 65, 65, 255),
+                            cursorColor = Color(65, 65, 65, 255),
+                            textColor = Color(65, 65, 65, 255),
+                        ),
+                        textStyle = TextStyle.Default.copy(fontFamily = Poppins)
+                    )
+
+                    OutlinedTextField(
+                        value = severity,
+                        onValueChange = { },
+                        label = {
+                            Text(
+                                text = "Severity",
+                                fontFamily = Poppins,
+                                color = Color(65, 65, 65, 255)
+                            )
+                        },
+                        readOnly = true,
+                        modifier = Modifier
+                            .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                            .fillMaxWidth(),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            backgroundColor = Color(249, 244, 244, 255),
+                            focusedBorderColor = Color(65, 65, 65, 255),
+                            unfocusedBorderColor = Color(65, 65, 65, 255),
+                            focusedLabelColor = Color(65, 65, 65, 255),
+                            unfocusedLabelColor = Color(65, 65, 65, 255),
+                            cursorColor = Color(65, 65, 65, 255),
+                            textColor = Color(65, 65, 65, 255),
+                        ),
+                        textStyle = TextStyle.Default.copy(fontFamily = Poppins)
+                    )
+
+                    OutlinedTextField(
+                        value = service,
+                        onValueChange = { },
+                        label = {
+                            Text(
+                                text = "Service",
+                                fontFamily = Poppins,
+                                color = Color(65, 65, 65, 255)
+                            )
+                        },
+                        readOnly = true,
+                        modifier = Modifier
+                            .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                            .fillMaxWidth(),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            backgroundColor = Color(249, 244, 244, 255),
+                            focusedBorderColor = Color(65, 65, 65, 255),
+                            unfocusedBorderColor = Color(65, 65, 65, 255),
+                            focusedLabelColor = Color(65, 65, 65, 255),
+                            unfocusedLabelColor = Color(65, 65, 65, 255),
+                            cursorColor = Color(65, 65, 65, 255),
+                            textColor = Color(65, 65, 65, 255),
+                        ),
+                        textStyle = TextStyle.Default.copy(fontFamily = Poppins)
+                    )
+
+                    OutlinedTextField(
+                        value = status,
+                        onValueChange = { },
+                        label = {
+                            Text(
+                                text = "Status",
+                                fontFamily = Poppins,
+                                color = Color(65, 65, 65, 255)
+                            )
+                        },
+                        readOnly = true,
+                        modifier = Modifier
+                            .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                            .fillMaxWidth(),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            backgroundColor = Color(249, 244, 244, 255),
+                            focusedBorderColor = Color(65, 65, 65, 255),
+                            unfocusedBorderColor = Color(65, 65, 65, 255),
+                            focusedLabelColor = Color(65, 65, 65, 255),
+                            unfocusedLabelColor = Color(65, 65, 65, 255),
+                            cursorColor = Color(65, 65, 65, 255),
+                            textColor = Color(65, 65, 65, 255),
+                        ),
+                        textStyle = TextStyle.Default.copy(fontFamily = Poppins)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = {
+                            val id = request?.request_id
+                            navController.navigate(IssueMapDestination.route + "/$id")
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = (Color(244, 162, 97, 255))
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        contentPadding = PaddingValues(12.dp)
+                    ) {
+                        Text(
+                            text = "See on a map",
+                            textAlign = TextAlign.Center,
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                fontFamily = Poppins,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = Color(249, 244, 244, 255),
                         )
                     }
                 }

@@ -1,5 +1,6 @@
 package com.example.lokalko.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,12 +20,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.lokalko.R
+import com.example.lokalko.ui.theme.Poppins
 
 @Composable
-fun ColorLegendCard() {
+fun LegendCard() {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -36,17 +41,17 @@ fun ColorLegendCard() {
             modifier = Modifier.padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            LegendItem(Color.Red, "Not Started")
+            LegendItem(R.drawable.not_started_lokalko, "Not Started")
             Spacer(modifier = Modifier.width(16.dp))
-            LegendItem(Color.Blue, "Started")
+            LegendItem(R.drawable.started_lokalko, "Started")
             Spacer(modifier = Modifier.width(16.dp))
-            LegendItem(Color.Green, "Finished")
+            LegendItem(R.drawable.finished_lokalko, "Finished")
         }
     }
 }
 
 @Composable
-fun LegendItem(color: Color, text: String) {
+fun LegendItem(iconResId: Int, text: String) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -54,16 +59,25 @@ fun LegendItem(color: Color, text: String) {
         Box(
             modifier = Modifier
                 .size(24.dp)
-                .background(color)
+                .background(Color.Transparent)
                 .clip(CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            // Možete ovdje dodati ikone ili druge indikatore
+            Image(
+                painter = painterResource(id = iconResId),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
         }
         Text(
             text = text,
             modifier = Modifier.padding(top = 4.dp),
-            style = TextStyle(fontWeight = FontWeight.Bold)
+            style = TextStyle(
+                fontSize = 12.sp,
+                fontFamily = Poppins,
+                fontWeight = FontWeight.Bold
+            ),
+            color = Color(146, 167, 165, 255)
         )
     }
 }

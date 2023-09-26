@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Lokalko" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- styles.xml (Light Theme) -->
+    <style name="AppTheme.Light" parent="Theme.AppCompat.Light">
+        <item name="colorPrimary">@color/light_primary_color</item>
+        <item name="android:textColorPrimary">@color/light_primary_text_color</item>
+        <item name="android:textColorSecondary">@color/light_secondary_text_color</item>
+    </style>
+
+    <!-- styles.xml (Dark Theme) -->
+    <style name="AppTheme.Dark" parent="Theme.AppCompat">
+        <item name="colorPrimary">@color/dark_primary_color</item>
+        <item name="android:textColorPrimary">@color/dark_primary_text_color</item>
+        <item name="android:textColorSecondary">@color/dark_secondary_text_color</item>
+    </style>
+
 </resources>

@@ -49,8 +49,15 @@ android {
 }
 
 dependencies {
-    //icons
-    implementation "androidx.compose.material:material-icons-extended:1.4.0-alpha01"
+    implementation "com.squareup.okhttp3:okhttp:5.0.0-alpha.2"
+    implementation "com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2"
+
+    //google maps
+    implementation 'com.google.maps.android:maps-compose:2.7.2'
+    implementation 'com.google.android.gms:play-services-maps:18.1.0'
+
+    //splash screen
+    implementation 'androidx.core:core-splashscreen:1.0.0-beta02'
 
     //coil
     implementation "io.coil-kt:coil-compose:2.3.0"

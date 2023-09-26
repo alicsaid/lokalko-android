@@ -12,7 +12,6 @@ import com.example.lokalko.data.model.Request
 import com.example.lokalko.data.repository.LokalkoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.net.ConnectException
@@ -24,22 +23,15 @@ import javax.inject.Inject
 class RequestDetailsScreenViewModel @Inject constructor(private val lokalkoRepository: LokalkoRepository) :
     ViewModel() {
 
-    init {
-        val requestId = 3
-        getRequestDetails(requestId)
-    }
-
-    val request: MutableStateFlow<Request?> = MutableStateFlow(null)
+    val request: MutableState<Request?> = mutableStateOf(null)
     val errorMessage: MutableState<String> = mutableStateOf("No Error")
 
-    private fun getRequestDetails(requestId: Int) {
+    fun getRequestDetails(requestId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response = lokalkoRepository.getRequestDetails(requestId)
+                val response = lokalkoRepository.getRequestDetails(requestId = requestId)
                 request.value = response
                 println("$response")
-            } catch (e: HttpException) {
-                handleHttpException(errorMessage, e.code())
             } catch (e: UnknownHostException) {
                 // Server nije pristupačan (nema konekcije sa serverom)
                 handleServerUnavailableException(errorMessage)
@@ -49,6 +41,9 @@ class RequestDetailsScreenViewModel @Inject constructor(private val lokalkoRepos
             } catch (e: ConnectException) {
                 // Nije moguće uspostaviti konekciju sa serverom (nema interneta)
                 handleNoInternetException(errorMessage)
+            } catch (e: HttpException) {
+                // Klijent errori
+                handleHttpException(errorMessage, e.code())
             }
         }
     }

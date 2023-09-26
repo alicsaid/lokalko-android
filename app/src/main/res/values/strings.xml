@@ -5,6 +5,8 @@
     <string name="my_requests">My requests</string>
     <string name="profile">Profile</string>
     <string name="request_details">Request Details</string>
+    <string name="map">Map</string>
+    <string name="select_location_map">Select location map</string>
     <string name="contact">Contact</string>
     <string name="no_internet1">No internet connection!</string>
     <string name="no_internet2">Please check you internet settings!</string>
@@ -13,4 +15,12 @@
     <string name="server_error3">But dont worry, we are working on it.</string>
     <string name="dummy_text1">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla malesuada efficitur ex, quis viverra enim luctus ut.</string>
     <string name="dummy_text2">Lorem ipsum dolor sit amet. Nulla malesuada efficitur ex, quis viverra enim luctus ut. Morbi at congue erat libero nec nisi.</string>
+    <string name="api_error_4xx">Invalid credentials!</string>
+    <string name="api_error_5xx">500: Internal server error</string>
+    <string name="api_generic_error">Ooops, something went wrong.</string>
+    <string name="please_fill_all_the_field">Please fill in all fields!</string>
+    <string name="enter_valid_email">Please enter a valid email address!</string>
+    <string name="password_must_me_6_char_long">Password must be at least 6 characters long!</string>
+    <string name="passwords_do_not_match">Passwords do not match!</string>
+    <string name="user_already_exists">User with this email already exists!</string>
 </resources>

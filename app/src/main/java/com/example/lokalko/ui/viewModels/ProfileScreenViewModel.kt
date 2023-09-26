@@ -13,7 +13,6 @@ import com.example.lokalko.data.model.User
 import com.example.lokalko.data.repository.LokalkoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.net.ConnectException
@@ -29,18 +28,16 @@ class ProfileScreenViewModel @Inject constructor(private val lokalkoRepository: 
         getUserData()
     }
 
-    val user: MutableStateFlow<User?> = MutableStateFlow(null)
+    val user: MutableState<User?> = mutableStateOf(null)
     val errorMessage: MutableState<String> = mutableStateOf("No Error")
 
     private fun getUserData() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val userId = 13
-                val response = lokalkoRepository.getUserData()
+                val userId = 1 // TODO: postaviti user_id logovanog korisnika
+                val response = lokalkoRepository.getUserData(userId = userId)
                 user.value = response
                 println("$response")
-            } catch (e: HttpException) {
-                handleHttpException(errorMessage, e.code())
             } catch (e: UnknownHostException) {
                 // Server nije pristupačan (nema konekcije sa serverom)
                 handleServerUnavailableException(errorMessage)
@@ -50,26 +47,37 @@ class ProfileScreenViewModel @Inject constructor(private val lokalkoRepository: 
             } catch (e: ConnectException) {
                 // Nije moguće uspostaviti konekciju sa serverom (nema interneta)
                 handleNoInternetException(errorMessage)
+            } catch (e: HttpException) {
+                // Klijent errori
+                handleHttpException(errorMessage, e.code())
             }
         }
     }
 
-    fun updateUser(email: String, firstName: String, lastName: String, city: String) {
+    fun updateUser(firstName: String, lastName: String, city: String, email: String ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val userId = 13
-                val updateUser = UpdateUser(email, firstName, lastName, city)
+                val userId = 1 // TODO: postaviti user_id logovanog korisnika
+                val updateUser = UpdateUser(firstName, lastName, city, email)
                 val response = lokalkoRepository.updateUser(userId, updateUser)
                 println("$response")
-            } catch (e: HttpException) {
-                handleHttpException(errorMessage, e.code())
             } catch (e: UnknownHostException) {
+                // Server nije pristupačan (nema konekcije sa serverom)
                 handleServerUnavailableException(errorMessage)
             } catch (e: SocketTimeoutException) {
+                // Vremensko ograničenje konekcije, moguće da je server pao
                 handleServerDownException(errorMessage)
             } catch (e: ConnectException) {
+                // Nije moguće uspostaviti konekciju sa serverom (nema interneta)
                 handleNoInternetException(errorMessage)
+            } catch (e: HttpException) {
+                // Klijent errori
+                handleHttpException(errorMessage, e.code())
             }
         }
+    }
+
+    fun capitalizeText(text: String): String {
+        return text.lowercase().replaceFirstChar { it.uppercase() }
     }
 }

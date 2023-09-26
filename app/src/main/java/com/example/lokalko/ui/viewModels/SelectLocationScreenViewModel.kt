@@ -8,10 +8,13 @@ import com.example.lokalko.data.helpers.handleHttpException
 import com.example.lokalko.data.helpers.handleNoInternetException
 import com.example.lokalko.data.helpers.handleServerDownException
 import com.example.lokalko.data.helpers.handleServerUnavailableException
+import com.example.lokalko.data.model.City
 import com.example.lokalko.data.model.Request
+import com.example.lokalko.data.preferences.Preferences
 import com.example.lokalko.data.repository.LokalkoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.net.ConnectException
@@ -20,21 +23,25 @@ import java.net.UnknownHostException
 import javax.inject.Inject
 
 @HiltViewModel
-class IssueMapScreenViewModel @Inject constructor(private val lokalkoRepository: LokalkoRepository) :
+class SelectLocationScreenViewModel @Inject constructor(
+    private val lokalkoRepository: LokalkoRepository,
+    private val preferences: Preferences
+) :
     ViewModel() {
 
-    val issue: MutableState<Request?> = mutableStateOf(null)
+    init {
+            getCityData()
+    }
+
+    val city: MutableState<City?> = mutableStateOf(null)
     val errorMessage: MutableState<String> = mutableStateOf("No Error")
 
-//    init {
-//        getIssueInfo()
-//    }
-
-    fun getIssueInfo(requestId: Int) {
+    private fun getCityData() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response = lokalkoRepository.getRequestDetails(requestId = requestId)
-                issue.value = response
+                val cityId = 2 // TODO: postaviti grad logovanog korisnika
+                val response = lokalkoRepository.getCityData(cityId = cityId)
+                city.value = response
                 println("$response")
             } catch (e: HttpException) {
                 handleHttpException(errorMessage, e.code())
